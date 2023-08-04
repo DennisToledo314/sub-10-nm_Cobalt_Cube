@@ -1,0 +1,59 @@
+# MIF 2.1
+
+set A 3e-11
+set Ms 1.4e6
+
+Parameter side 5e-9
+Parameter damping 0.0049917
+
+Specify Oxs_BoxAtlas:atlas [subst {
+  xrange {0 $side}
+  yrange {0 $side}
+  zrange {0 $side}
+}]
+
+Specify Oxs_RectangularMesh:mesh [subst {
+  cellsize {[expr $side/10] [expr $side/10] [expr $side/10]}
+  atlas  :atlas
+}]
+
+Specify Oxs_UniformExchange [subst {
+  A   $A
+}]
+
+Specify Oxs_UniaxialAnisotropy {
+
+K1 { Oxs_UniformScalarField {
+value 4.2e5 } }
+
+axis { Oxs_UniformVectorField {
+  norm 1
+  vector {0 0 1}
+}
+}
+}
+
+Specify Oxs_Demag {}
+
+Specify Oxs_FixedZeeman:Bias {
+	field { Oxs_UniformVectorField {
+	vector {0 0 2}
+}}
+	multiplier 795774.72
+}
+
+Specify Oxs_RungeKuttaEvolve:evolve [subst {
+  alpha [expr $damping]
+  start_dm 0.01
+}]
+
+Specify Oxs_TimeDriver [subst {
+ evolver :evolve
+ stopping_time {4e-7} 
+ mesh  :mesh
+Ms $Ms
+m0 {0 0 -1}
+}]
+
+
+

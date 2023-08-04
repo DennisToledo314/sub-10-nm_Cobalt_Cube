@@ -1,0 +1,65 @@
+# MIF 2.1
+
+set A 3e-11
+set Ms 1.4e6
+set side 6e-9
+
+set I 6.17e-06
+set current_density [expr {$I/($side*$side)}]
+
+Specify Oxs_BoxAtlas:atlas [subst {
+  xrange {0 $side}
+  yrange {0 $side}
+  zrange {0 $side}
+}]
+
+Specify Oxs_RectangularMesh:mesh {
+  cellsize {6e-10 6e-10 6e-10}
+  atlas  :atlas
+}
+
+Specify Oxs_UniformExchange [subst {
+  A   $A
+}]
+
+Specify Oxs_UniaxialAnisotropy {
+
+K1 { Oxs_UniformScalarField {
+value 4.2e5 } }
+
+axis { Oxs_UniformVectorField {
+  norm 1
+  vector {0 0 1}
+}
+}
+}
+
+Specify Oxs_Demag {}
+
+Specify Oxs_SpinXferEvolve:evolve [subst {
+  alpha 0.006
+  start_dm 0.01
+  mp {0 0 1}
+  J  $current_density
+  J_profile J_pulse 
+  J_profile_args total_time
+  P 1
+}]
+
+Specify Oxs_TimeDriver [subst {
+ evolver :evolve
+ stopping_time 1e-9 
+ mesh  :mesh
+Ms $Ms
+m0 {0 0 -1}
+}]
+
+proc J_pulse { t } {
+	set binary 1.0;
+	set PulseWidth [expr 1.0e-9]
+
+	if {$t > $PulseWidth} {
+		set binary 0
+}
+return $binary
+}
